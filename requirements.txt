@@ -4,10 +4,6 @@ torchvision==0.1.8
 torchtext==0.1.1
 visdom
 
-# tensorflow
-tensorflow-gpu
-prettytensor
-
 # data
 scipy
 scikit-learn
