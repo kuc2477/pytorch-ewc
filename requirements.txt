@@ -1,0 +1,31 @@
+# pytorch
+http://download.pytorch.org/whl/cu80/torch-0.2.0.post3-cp35-cp35m-manylinux1_x86_64.whl 
+torchvision==0.1.8
+torchtext==0.1.1
+visdom
+
+# tensorflow
+tensorflow-gpu
+prettytensor
+
+# data
+scipy
+scikit-learn
+numpy
+pillow
+
+# utils (debugging)
+pdbpp
+ipdb
+ipython
+jupyter
+jupyterthemes
+jupyter_contrib_nbextensions
+jupyter_nbextensions_configurator
+
+# utils (others)
+colorama
+tqdm
+lmdb
+requests
+fake-useragent
