@@ -78,23 +78,25 @@ class MLP(nn.Module):
         for n, p in self.named_parameters():
             n = n.replace('.', '__')
             self.register_buffer('{}_estimated_mean'.format(n), p.data.clone())
-            self.register_buffer('{}_estimated_cramer_rao_lower_bound'
+            self.register_buffer('{}_estimated_fisher'
                                  .format(n), fisher[n].data.clone())
 
     def ewc_loss(self, lamda, cuda=False):
         try:
             losses = []
             for n, p in self.named_parameters():
-                # retrieve the consolidated mean and crlb.
+                # retrieve the consolidated mean and fisher information.
                 n = n.replace('.', '__')
                 mean = getattr(self, '{}_estimated_mean'.format(n))
-                crlb = getattr(self, '{}_estimated_cramer_rao_lower_bound'
-                               .format(n))
-                # wrap mean and crlb in variables.
+                fisher = getattr(self, '{}_estimated_fisher'.format(n))
+                # wrap mean and fisher in variables.
                 mean = Variable(mean)
-                crlb = Variable(crlb)
-                # calculate a ewc loss.
-                losses.append((crlb * (p-mean)**2).sum())
+                fisher = Variable(fisher)
+                # calculate a ewc loss. (assumes the parameter's prior as
+                # gaussian distribution with the estimated mean and the
+                # estimated cramer-rao lower bound variance, which is
+                # equivalent to the inverse of fisher information)
+                losses.append((fisher * (p-mean)**2).sum())
             return (lamda/2)*sum(losses)
         except AttributeError:
             # ewc loss is 0 if there's no consolidated parameters.
