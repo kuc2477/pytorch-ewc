@@ -2,6 +2,7 @@ from torch import optim
 from torch import nn
 from torch.autograd import Variable
 from tqdm import tqdm
+from visdom import Visdom
 import utils
 import visual
 
@@ -9,14 +10,17 @@ import visual
 def train(model, train_datasets, test_datasets, epochs_per_task=10,
           batch_size=64, test_size=1024, consolidate=True,
           fisher_estimation_sample_size=1024,
-          lr=1e-3, weight_decay=1e-5, lamda=3,
+          lr=1e-3, weight_decay=1e-5,
           loss_log_interval=30,
           eval_log_interval=50,
           cuda=False):
     # prepare the loss criteriton and the optimizer.
     criteriton = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr,
+    optimizer = optim.SGD(model.parameters(), lr=lr,
                            weight_decay=weight_decay)
+
+    # instantiate a visdom client
+    vis = Visdom(env=model.name)
 
     # set the model's mode to training mode.
     model.train()
@@ -56,16 +60,17 @@ def train(model, train_datasets, test_datasets, epochs_per_task=10,
                 optimizer.zero_grad()
                 scores = model(x)
                 ce_loss = criteriton(scores, y)
-                ewc_loss = model.ewc_loss(lamda, cuda=cuda)
+                ewc_loss = model.ewc_loss(cuda=cuda)
                 loss = ce_loss + ewc_loss
                 loss.backward()
                 optimizer.step()
 
                 # calculate the training precision.
                 _, predicted = scores.max(1)
-                precision = (predicted == y).sum().data[0] / len(x)
+                precision = (predicted == y).sum().float() / len(x)
 
                 data_stream.set_description((
+                    '=> '
                     'task: {task}/{tasks} | '
                     'epoch: {epoch}/{epochs} | '
                     'progress: [{trained}/{total}] ({progress:.0f}%) | '
@@ -82,10 +87,10 @@ def train(model, train_datasets, test_datasets, epochs_per_task=10,
                     trained=batch_index*batch_size,
                     total=dataset_size,
                     progress=(100.*batch_index/dataset_batches),
-                    prec=precision,
-                    ce_loss=ce_loss.data[0],
-                    ewc_loss=ewc_loss.data[0],
-                    loss=loss.data[0],
+                    prec=float(precision),
+                    ce_loss=float(ce_loss),
+                    ewc_loss=float(ewc_loss),
+                    loss=float(loss),
                 ))
 
                 # Send test precision to the visdom server.
@@ -106,22 +111,28 @@ def train(model, train_datasets, test_datasets, epochs_per_task=10,
                         'precision'
                     )
                     visual.visualize_scalars(
-                        precs, names, title,
-                        iteration, env=model.name,
+                        vis, precs, names, title,
+                        iteration
                     )
 
                 # Send losses to the visdom server.
                 if iteration % loss_log_interval == 0:
                     title = 'loss (consolidated)' if consolidate else 'loss'
                     visual.visualize_scalars(
-                        [loss.data, ce_loss.data, ewc_loss.data],
+                        vis,
+                        [loss, ce_loss, ewc_loss],
                         ['total', 'cross entropy', 'ewc'],
-                        title, iteration, env=model.name
+                        title, iteration
                     )
 
-        if consolidate:
+        if consolidate and task < len(train_datasets):
             # estimate the fisher information of the parameters and consolidate
             # them in the network.
+            print(
+                '=> Estimating diagonals of the fisher information matrix...',
+                end='', flush=True
+            )
             model.consolidate(model.estimate_fisher(
                 train_dataset, fisher_estimation_sample_size
             ))
+            print(' Done!')

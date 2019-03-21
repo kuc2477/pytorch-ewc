@@ -78,7 +78,7 @@ def validate(model, dataset, test_size=256, batch_size=32,
         scores = model(x)
         _, predicted = scores.max(1)
         # update statistics.
-        total_correct += (predicted == y).sum().data[0]
+        total_correct += int((predicted == y).sum())
         total_tested += len(x)
     model.train(mode=mode)
     precision = total_correct / total_tested

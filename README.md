@@ -7,8 +7,14 @@ PyTorch implementation of DeepMind's paper [Overcoming Catastrophic Forgetting, 
 
 Continual Learning **without EWC** (*left*) and **with EWC** (*right*).
 
-<img width="300" src="arts/precision-plain.png" /> <img width="300" src="arts/precision-consolidated.png" /> 
+<img width="300" src="arts/precision-plain.png" /> <img width="300" src="arts/precision-consolidated.png" />
 
+
+## Update Logs
+- 2019.03.22
+    - **Fixed a bug within `model.estimate_fisher()`**: It was computing square of expected log-likelihoods. Now it computes expectation of squared log-likelihoods, which is an correct way to estimate diagonals of the fisher information matrix.
+    - Changed the default optimizer from Adam to SGD, which is the one used in the paper.
+    - Migrated to PyTorch 1.0.1 and visdom 0.1.8.8
 
 
 ## Installation

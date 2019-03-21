@@ -1,51 +1,46 @@
 import numpy as np
 from torch.cuda import FloatTensor as CUDATensor
-from visdom import Visdom
 
 _WINDOW_CASH = {}
 
 
-def _vis(env='main'):
-    return Visdom(env=env)
-
-
-def visualize_image(tensor, name, label=None, env='main', w=250, h=250,
+def visualize_image(vis, tensor, name, label=None, w=250, h=250,
                     update_window_without_label=False):
     tensor = tensor.cpu() if isinstance(tensor, CUDATensor) else tensor
     title = name + ('-{}'.format(label) if label is not None else '')
 
-    _WINDOW_CASH[title] = _vis(env).image(
+    _WINDOW_CASH[title] = vis.image(
         tensor.numpy(), win=_WINDOW_CASH.get(title),
         opts=dict(title=title, width=w, height=h)
     )
 
     # This is useful when you want to maintain the most recent images.
     if update_window_without_label:
-        _WINDOW_CASH[name] = _vis(env).image(
+        _WINDOW_CASH[name] = vis.image(
             tensor.numpy(), win=_WINDOW_CASH.get(name),
             opts=dict(title=name, width=w, height=h)
         )
 
 
-def visualize_images(tensor, name, label=None, env='main', w=250, h=250,
+def visualize_images(vis, tensor, name, label=None, w=250, h=250,
                      update_window_without_label=False):
     tensor = tensor.cpu() if isinstance(tensor, CUDATensor) else tensor
     title = name + ('-{}'.format(label) if label is not None else '')
 
-    _WINDOW_CASH[title] = _vis(env).images(
+    _WINDOW_CASH[title] = vis.images(
         tensor.numpy(), win=_WINDOW_CASH.get(title),
         opts=dict(title=title, width=w, height=h)
     )
 
     # This is useful when you want to maintain the most recent images.
     if update_window_without_label:
-        _WINDOW_CASH[name] = _vis(env).images(
+        _WINDOW_CASH[name] = vis.images(
             tensor.numpy(), win=_WINDOW_CASH.get(name),
             opts=dict(title=name, width=w, height=h)
         )
 
 
-def visualize_kernel(kernel, name, label=None, env='main', w=250, h=250,
+def visualize_kernel(vis, kernel, name, label=None, w=250, h=250,
                      update_window_without_label=False, compress_tensor=False):
     # Do not visualize kernels that does not exists.
     if kernel is None:
@@ -68,33 +63,34 @@ def visualize_kernel(kernel, name, label=None, env='main', w=250, h=250,
         (kernel_norm.max() - kernel_norm.min())
     ).numpy()
 
-    _WINDOW_CASH[title] = _vis(env).image(
+    _WINDOW_CASH[title] = vis.image(
         visualized, win=_WINDOW_CASH.get(title),
         opts=dict(title=title, width=w, height=h)
     )
 
     # This is useful when you want to maintain the most recent images.
     if update_window_without_label:
-        _WINDOW_CASH[name] = _vis(env).image(
+        _WINDOW_CASH[name] = vis.image(
             visualized, win=_WINDOW_CASH.get(name),
             opts=dict(title=name, width=w, height=h)
         )
 
 
-def visualize_scalar(scalar, name, iteration, env='main'):
+def visualize_scalar(vis, scalar, name, iteration):
     visualize_scalars(
+        vis,
         [scalar] if isinstance(scalar, float) or len(scalar) == 1 else scalar,
-        [name], name, iteration, env=env
+        [name], name, iteration
     )
 
 
-def visualize_scalars(scalars, names, title, iteration, env='main'):
+def visualize_scalars(vis, scalars, names, title, iteration):
     assert len(scalars) == len(names)
     # Convert scalar tensors to numpy arrays.
     scalars, names = list(scalars), list(names)
     scalars = [s.cpu() if isinstance(s, CUDATensor) else s for s in scalars]
-    scalars = [s.numpy() if hasattr(s, 'numpy') else np.array([s]) for s in
-               scalars]
+    scalars = [s.detach().numpy() if hasattr(s, 'numpy') else
+               np.array([s]) for s in scalars]
     multi = len(scalars) > 1
     num = len(scalars)
 
@@ -119,6 +115,8 @@ def visualize_scalars(scalars, names, title, iteration, env='main'):
     Y = np.column_stack(scalars) if multi else scalars[0]
 
     if title in _WINDOW_CASH:
-        _vis(env).updateTrace(X=X, Y=Y, win=_WINDOW_CASH[title], opts=options)
+        vis.line(
+            X=X, Y=Y, win=_WINDOW_CASH[title], opts=options, update='append'
+        )
     else:
-        _WINDOW_CASH[title] = _vis(env).line(X=X, Y=Y, opts=options)
+        _WINDOW_CASH[title] = vis.line(X=X, Y=Y, opts=options)
