@@ -10,13 +10,6 @@ Continual Learning **without EWC** (*left*) and **with EWC** (*right*).
 <img width="300" src="arts/precision-plain.png" /> <img width="300" src="arts/precision-consolidated.png" />
 
 
-## Update Logs
-- 2019.03.22
-    - **Fixed a bug within `model.estimate_fisher()`**: It was computing square of expected log-likelihoods. Now it computes expectation of squared log-likelihoods, which is an correct way to estimate diagonals of the fisher information matrix.
-    - Changed the default optimizer from Adam to SGD, which is the one used in the paper.
-    - Migrated to PyTorch 1.0.1 and visdom 0.1.8.8
-
-
 ## Installation
 ```
 $ git clone https://github.com/kuc2477/pytorch-ewc && cd pytorch-ewc
@@ -77,6 +70,12 @@ $ ./main.py               # Train the network without consolidation.
 $ ./main.py --consolidate # Train the network with consolidation.
 ```
 
+
+## Update Logs
+- 2019.03.22
+    - **Fixed a bug within `model.estimate_fisher()`**
+    - Changed the default optimizer from Adam to SGD
+    - Migrated the project to PyTorch 1.0.1 and visdom 0.1.8.8
 
 ## Reference
 - [Overcoming Catastrophic Forgetting, PNAS 2017](https://arxiv.org/abs/1612.00796)
