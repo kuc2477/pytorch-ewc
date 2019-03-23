@@ -1,5 +1,5 @@
 # pytorch-ewc
-PyTorch implementation of DeepMind's paper [Overcoming Catastrophic Forgetting, PNAS 2017](https://arxiv.org/abs/1612.00796).
+Unofficial PyTorch implementation of DeepMind's paper [Overcoming Catastrophic Forgetting, PNAS 2017](https://arxiv.org/abs/1612.00796).
 
 ![graphic-image](./arts/graphic-image.jpg)
 
