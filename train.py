@@ -17,7 +17,7 @@ def train(model, train_datasets, test_datasets, epochs_per_task=10,
     # prepare the loss criteriton and the optimizer.
     criteriton = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr,
-                           weight_decay=weight_decay)
+                          weight_decay=weight_decay)
 
     # instantiate a visdom client
     vis = Visdom(env=model.name)
@@ -130,7 +130,7 @@ def train(model, train_datasets, test_datasets, epochs_per_task=10,
             # them in the network.
             print(
                 '=> Estimating diagonals of the fisher information matrix...',
-                end='', flush=True
+                flush=True, end='',
             )
             model.consolidate(model.estimate_fisher(
                 train_dataset, fisher_estimation_sample_size
