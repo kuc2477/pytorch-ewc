@@ -72,8 +72,10 @@ $ ./main.py --consolidate # Train the network with consolidation.
 
 
 ## Update Logs
+- 2019.06.29
+    - **Fixed a critical bug within `model.estimate_fisher()`**: Squared gradients of log-likelihood w.r.t. each layer were mean-reduced over all the dimensions. Now it correctly estimates the Fisher matrix by averaging only over the batch dimension
 - 2019.03.22
-    - **Fixed a bug within `model.estimate_fisher()`**
+    - **Fixed a critical bug within `model.estimate_fisher()`**: Fisher matrix were being estimated with squared expectation of gradient of log-likelihoods. Now it estimates the Fisher matrix with the expectation of squared gradient of log-likelihood.
     - Changed the default optimizer from Adam to SGD
     - Migrated the project to PyTorch 1.0.1 and visdom 0.1.8.8
 

@@ -77,7 +77,7 @@ class MLP(nn.Module):
             retain_graph=(i < len(loglikelihoods))
         ) for i, l in enumerate(loglikelihoods, 1)])
         loglikelihood_grads = [torch.stack(gs) for gs in loglikelihood_grads]
-        fisher_diagonals = [(g ** 2).mean() for g in loglikelihood_grads]
+        fisher_diagonals = [(g ** 2).mean(0) for g in loglikelihood_grads]
         param_names = [
             n.replace('.', '__') for n, p in self.named_parameters()
         ]
